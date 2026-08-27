@@ -1,1 +1,115 @@
-placeholder
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>HRCC Gravel Overlay</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root { --bg:#101418; --panel:rgba(16,20,24,.92); --text:#f3f1ea; --muted:#b8b3a6; --formed:#8B5A2B; --gravel:#F5D76E; --sealed:#E03131; --line:#2a3138; }
+    * { box-sizing: border-box; }
+    html, body { height:100%; margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    #map { position:absolute; inset:0; }
+    .top { position:absolute; z-index:500; top:10px; left:10px; right:10px; display:flex; gap:8px; pointer-events:none; }
+    .top > * { pointer-events:auto; }
+    input, button { border:1px solid var(--line); background:var(--panel); color:var(--text); border-radius:10px; padding:10px 12px; font-size:16px; }
+    #search { flex:1; min-width:0; }
+    .filters { display:flex; gap:6px; flex-wrap:wrap; }
+    .filters button.active { outline:2px solid #fff; }
+    .btn-formed { background:var(--formed); color:#fff; }
+    .btn-gravel { background:var(--gravel); color:#1a1408; }
+    .btn-sealed { background:var(--sealed); color:#fff; }
+    .legend { position:absolute; z-index:500; left:10px; bottom:28px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 12px; font-size:13px; line-height:1.45; max-width:260px; }
+    .sw { display:inline-block; width:18px; height:4px; border-radius:2px; margin-right:8px; vertical-align:middle; }
+    .gps { position:absolute; z-index:500; right:10px; bottom:90px; width:46px; height:46px; border-radius:23px; font-size:20px; }
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip { background:#1b2127; color:var(--text); }
+    .popup h3 { margin:0 0 6px; font-size:16px; }
+    .popup p { margin:0; color:var(--muted); font-size:13px; }
+    .attr { position:absolute; z-index:500; right:10px; bottom:8px; font-size:10px; color:#ddd; background:rgba(0,0,0,.45); padding:3px 6px; border-radius:6px; max-width:70%; text-align:right; }
+    .status { position:absolute; z-index:600; inset:0; display:grid; place-items:center; background:#101418; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="top">
+    <input id="search" type="search" placeholder="Search road name" autocomplete="off" />
+    <div class="filters">
+      <button data-f="all" class="active">All</button>
+      <button data-f="gravel" class="btn-gravel">Gravel</button>
+      <button data-f="formed" class="btn-formed">Formed</button>
+      <button data-f="sealed" class="btn-sealed">Sealed</button>
+    </div>
+  </div>
+  <button class="gps" id="gps" title="My location">◎</button>
+  <div class="legend">
+    <div><span class="sw" style="background:#8B5A2B"></span>Formed</div>
+    <div><span class="sw" style="background:#F5D76E"></span>Gravel</div>
+    <div><span class="sw" style="background:#E03131"></span>Sealed / Otta / bitumen</div>
+    <div style="margin-top:6px;color:#b8b3a6">Chainage used to draw lines only — not shown.</div>
+  </div>
+  <div class="attr">Roads © State of Victoria (DTP) Vicmap Transport CC BY 4.0. Boundary Vicmap Admin CC BY 4.0. Surfaces: HRCC Register of Public Roads. Imagery: Esri. Not an official HRCC grading program. No Pozi.</div>
+  <div class="status" id="status">Loading Horsham overlay…</div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const COLOUR = { formed:'#8B5A2B', gravel:'#F5D76E', sealed:'#E03131', otta:'#E03131', track:'#5C4033' };
+    const map = L.map('map', { zoomControl:true, attributionControl:false });
+    L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom:19 }).addTo(map);
+    let roadsLayer, filter = 'all';
+    function styleRoad(f) {
+      const s = (f.properties && f.properties.surface) || 'sealed';
+      return { color: COLOUR[s] || '#E03131', weight: s==='gravel'?3.2:s==='formed'?2.4:2.6, opacity:0.95 };
+    }
+    function popupHtml(p) {
+      const surface = p.surface==='otta'?'Otta seal':p.surface==='sealed'?'Bitumen / sealed':p.surface==='formed'?'Formed only':p.surface==='gravel'?'Gravel unsealed':p.surface;
+      const len = p.length_m ? (p.length_m.toLocaleString('en-AU')+' m') : '';
+      return '<div class="popup"><h3>'+(p.name||'Unnamed')+'</h3><p>'+surface+(p.hierarchy?' \u00b7 '+p.hierarchy:'')+(len?' \u00b7 '+len:'')+'</p></div>';
+    }
+    function applyFilter() {
+      if (!roadsLayer) return;
+      roadsLayer.eachLayer(l => {
+        const s = l.feature.properties.surface;
+        const show = filter==='all' || s===filter || (filter==='sealed' && s==='otta');
+        if (show) map.addLayer(l); else map.removeLayer(l);
+      });
+    }
+    function normFeat(f) {
+      const p = f.properties || {};
+      f.properties = { name:p.name||p.n||'Unnamed', surface:p.surface||p.s||'sealed', hierarchy:p.hierarchy||p.h||'', length_m:p.length_m||p.l||null };
+      return f;
+    }
+    Promise.all([
+      fetch('data/horsham-lga.min.geojson').then(r => r.json()),
+      fetch('data/overlay-gravel.geojson').then(r => r.json()),
+      fetch('data/overlay-formed.geojson').then(r => r.json()),
+      fetch('data/overlay-sealed.geojson').then(r => r.json())
+    ]).then(([lga, gravel, formed, sealed]) => {
+      const lgaLayer = L.geoJSON(lga, { style:{ color:'#ffffff', weight:3, fillColor:'#000', fillOpacity:0.08 } }).addTo(map);
+      map.fitBounds(lgaLayer.getBounds(), { padding:[24,24] });
+      const roads = { type:'FeatureCollection', features:[].concat(gravel.features||[], formed.features||[], sealed.features||[]).map(normFeat) };
+      roadsLayer = L.geoJSON(roads, { style:styleRoad, onEachFeature:(f, layer) => layer.bindPopup(popupHtml(f.properties||{}), { maxWidth:260 }) }).addTo(map);
+      document.getElementById('status').style.display = 'none';
+    }).catch(err => {
+      document.getElementById('status').textContent = 'Could not load road data.';
+      console.error(err);
+    });
+    document.querySelectorAll('.filters button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filter = btn.dataset.f;
+        applyFilter();
+      });
+    });
+    document.getElementById('search').addEventListener('change', () => {
+      const q = document.getElementById('search').value.trim().toUpperCase();
+      if (!q || !roadsLayer) return;
+      let found = null;
+      roadsLayer.eachLayer(l => { if (!found && (l.feature.properties.name||'').toUpperCase().includes(q)) found = l; });
+      if (found) { map.fitBounds(found.getBounds(), { maxZoom:16, padding:[40,40] }); found.openPopup(); }
+    });
+    document.getElementById('gps').addEventListener('click', () => map.locate({ setView:true, maxZoom:16 }));
+    map.on('locationfound', e => { L.circleMarker(e.latlng, { radius:7, color:'#4cc3ff', fillColor:'#4cc3ff', fillOpacity:1 }).addTo(map); });
+  </script>
+</body>
+</html>
