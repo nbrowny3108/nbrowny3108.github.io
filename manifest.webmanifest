@@ -1,0 +1,16 @@
+{
+  "name": "Look-ahead — Horsham",
+  "short_name": "Look-ahead",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070a08",
+  "theme_color": "#070a08",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
