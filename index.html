@@ -14,17 +14,29 @@
     <meta name="format-detection" content="telephone=no" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.13.0/dist/maplibre-gl.css" />
     <title>Look-ahead — Horsham</title>
-    <script type="module" crossorigin src="/assets/index-CtU7ifpU.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CcToOxhW.css">
+    <link rel="stylesheet" href="/assets/style-afjQ3w3-.css">
   </head>
   <body>
     <div id="map" aria-label="Satellite look-ahead map"></div>
+
+    <div id="zoom-controls" role="group" aria-label="Map zoom">
+      <button type="button" id="zoom-in" aria-label="Zoom in">+</button>
+      <button type="button" id="zoom-out" aria-label="Zoom out">−</button>
+    </div>
 
     <section id="hud" aria-live="polite">
       <div class="hud-speed">
         <span id="hud-speed">—</span>
         <span class="hud-unit">km/h</span>
+        <div class="hud-trip">
+          <p class="hud-trip-readout">
+            <span id="hud-trip">0.000</span>
+            <span class="hud-trip-unit">km</span>
+          </p>
+          <button type="button" id="trip-reset">Reset</button>
+        </div>
       </div>
       <div class="hud-roads">
         <p class="hud-current">
@@ -35,8 +47,11 @@
           <span class="hud-label">Next</span>
           <span id="hud-next-road">Next road</span>
         </p>
+        <p id="hud-turn" class="hud-turn">Next turn</p>
       </div>
     </section>
 
+    <script src="https://unpkg.com/maplibre-gl@5.13.0/dist/maplibre-gl.js"></script>
+    <script defer src="/assets/index-hMnTou16.js"></script>
   </body>
 </html>
