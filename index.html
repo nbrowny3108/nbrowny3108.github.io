@@ -83,7 +83,6 @@
       (function () {
         var Orig = maplibregl.Map;
         maplibregl.Map = function (opts) {
-          if (opts) opts.minZoom = 10;
           var m = new Orig(opts);
           var done = false;
           var ready = function () {
@@ -100,6 +99,6 @@
         maplibregl.Map.prototype = Orig.prototype;
       })();
     </script>
-    <script src="/assets/app.js?v=4"></script>
+    <script src="/assets/app.js?v=11"></script>
   </body>
 </html>
