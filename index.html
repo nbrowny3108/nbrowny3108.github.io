@@ -20,6 +20,12 @@
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.13.0/dist/maplibre-gl.css" />
     <title>Look-ahead — Horsham</title>
     <link rel="stylesheet" href="/assets/style-afjQ3w3-.css">
+    <style>
+      #map, #hud, #zoom-controls { visibility: hidden; }
+      html.tiles-ready #map,
+      html.tiles-ready #hud,
+      html.tiles-ready #zoom-controls { visibility: visible; }
+    </style>
     <link rel="preload" as="image" href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/17/79922/117308" />
     <link rel="preload" as="image" href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/17/79923/117308" />
     <link rel="preload" as="image" href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/17/79924/117308" />
@@ -73,6 +79,26 @@
     </section>
 
     <script src="https://unpkg.com/maplibre-gl@5.13.0/dist/maplibre-gl.js"></script>
+    <script>
+      (function () {
+        var Orig = maplibregl.Map;
+        maplibregl.Map = function (opts) {
+          var m = new Orig(opts);
+          var done = false;
+          var ready = function () {
+            if (done) return;
+            if (m.areTilesLoaded && !m.areTilesLoaded()) return;
+            done = true;
+            document.documentElement.classList.add("tiles-ready");
+          };
+          m.on("render", ready);
+          m.on("idle", ready);
+          setTimeout(ready, 6000);
+          return m;
+        };
+        maplibregl.Map.prototype = Orig.prototype;
+      })();
+    </script>
     <script src="/assets/app.js?v=2"></script>
   </body>
 </html>
