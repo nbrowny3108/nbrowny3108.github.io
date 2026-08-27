@@ -17,6 +17,19 @@
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.13.0/dist/maplibre-gl.css" />
     <title>Look-ahead — Horsham</title>
     <link rel="stylesheet" href="/assets/style-afjQ3w3-.css">
+    <link
+      rel="preload"
+      as="image"
+      href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=142.19687,-36.71287,142.20113,-36.70540&bboxSR=4326&imageSR=3857&size=440,956&format=jpg&f=image"
+    />
+    <style>
+      #map {
+        background: #070a08 url("https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=142.19687,-36.71287,142.20113,-36.70540&bboxSR=4326&imageSR=3857&size=440,956&format=jpg&f=image") center / cover no-repeat;
+      }
+      .maplibregl-canvas {
+        opacity: 0;
+      }
+    </style>
   </head>
   <body>
     <div id="map" aria-label="Satellite look-ahead map"></div>
@@ -52,6 +65,29 @@
     </section>
 
     <script src="https://unpkg.com/maplibre-gl@5.13.0/dist/maplibre-gl.js"></script>
+    <script>
+      (function () {
+        var Orig = maplibregl.Map;
+        maplibregl.Map = function (opts) {
+          var m = new Orig(opts);
+          var hide = function () {
+            var c = m.getCanvas && m.getCanvas();
+            if (c) c.style.opacity = "0";
+          };
+          var show = function () {
+            if (m.areTilesLoaded && !m.areTilesLoaded()) return;
+            var c = m.getCanvas && m.getCanvas();
+            if (c) c.style.opacity = "1";
+          };
+          hide();
+          m.on("load", hide);
+          m.on("render", show);
+          m.on("idle", show);
+          return m;
+        };
+        maplibregl.Map.prototype = Orig.prototype;
+      })();
+    </script>
     <script src="/assets/app.js?v=2"></script>
   </body>
 </html>
