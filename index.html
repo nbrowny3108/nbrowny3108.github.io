@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Look-ahead" />
+    <meta name="theme-color" content="#070a08" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Look-ahead — Horsham</title>
+    <script type="module" crossorigin src="/assets/index-CtU7ifpU.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CcToOxhW.css">
+  </head>
+  <body>
+    <div id="map" aria-label="Satellite look-ahead map"></div>
+
+    <section id="hud" aria-live="polite">
+      <div class="hud-speed">
+        <span id="hud-speed">—</span>
+        <span class="hud-unit">km/h</span>
+      </div>
+      <div class="hud-roads">
+        <p class="hud-current">
+          <span class="hud-label">Now</span>
+          <span id="hud-current-road">Current road</span>
+        </p>
+        <p class="hud-next">
+          <span class="hud-label">Next</span>
+          <span id="hud-next-road">Next road</span>
+        </p>
+      </div>
+    </section>
+
+  </body>
+</html>
