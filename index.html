@@ -83,6 +83,7 @@
       (function () {
         var Orig = maplibregl.Map;
         maplibregl.Map = function (opts) {
+          if (opts) opts.minZoom = 10;
           var m = new Orig(opts);
           var done = false;
           var ready = function () {
