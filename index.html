@@ -95,11 +95,50 @@
           m.on("render", ready);
           m.on("idle", ready);
           setTimeout(ready, 6000);
+          var ring = null;
+          var cv = document.createElement("canvas");
+          cv.className = "grading-overlay";
+          cv.setAttribute("aria-hidden", "true");
+          fetch("/assets/shire.json").then(function (r) { return r.json(); }).then(function (a) {
+            var n = 1e5, d = a.r, e = [], i;
+            for (i = 0; i < d.length; i += 2) e.push([d[i] / n, d[i + 1] / n]);
+            ring = e;
+            drawShire();
+          });
+          function drawShire() {
+            if (!ring) return;
+            var mc = m.getCanvas && m.getCanvas();
+            if (!mc) return;
+            if (!cv.parentNode && mc.parentNode) mc.parentNode.appendChild(cv);
+            var ctx = cv.getContext("2d");
+            if (!ctx) return;
+            var pr = (m.getPixelRatio && m.getPixelRatio()) || 1;
+            var w = mc.clientWidth, h = mc.clientHeight;
+            cv.width = Math.max(1, Math.round(w * pr));
+            cv.height = Math.max(1, Math.round(h * pr));
+            cv.style.width = w + "px";
+            cv.style.height = h + "px";
+            ctx.setTransform(pr, 0, 0, pr, 0, 0);
+            ctx.clearRect(0, 0, w, h);
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 3;
+            ctx.lineJoin = "round";
+            ctx.beginPath();
+            var p = m.project(ring[0]);
+            ctx.moveTo(p.x, p.y);
+            for (var i = 1; i < ring.length; i++) {
+              p = m.project(ring[i]);
+              ctx.lineTo(p.x, p.y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+          }
+          m.on("render", drawShire);
           return m;
         };
         maplibregl.Map.prototype = Orig.prototype;
       })();
     </script>
-    <script src="/assets/app.js?v=12"></script>
+    <script src="/assets/app.js?v=13"></script>
   </body>
 </html>
