@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no"
+      content="viewport-fit=cover, width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -22,43 +22,61 @@
     <link rel="stylesheet" href="/assets/style-afjQ3w3-.css?v=10">
     <link rel="apple-touch-icon" href="/favicon.svg" />
     <style>
+      /* r17: map paints under notch and home indicator; HUD overlays the map */
       #map, #hud, #zoom-controls { visibility: hidden; }
       html.tiles-ready #map,
       html.tiles-ready #hud,
       html.tiles-ready #zoom-controls { visibility: visible; }
       html, body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        min-height: 100dvh;
-        min-height: -webkit-fill-available;
-        overflow: hidden;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 100vh !important;
+        min-height: 100dvh !important;
+        min-height: -webkit-fill-available !important;
+        overflow: hidden !important;
         background: #070a08;
-        position: fixed;
-        inset: 0;
+        position: relative !important;
+        inset: auto !important;
       }
-      #map {
-        position: fixed;
-        inset: 0;
-        width: 100%;
-        height: 100%;
+      #map,
+      #map .maplibregl-map,
+      #map .maplibregl-canvas-container,
+      #map .maplibregl-canvas {
+        position: fixed !important;
+        top: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 100dvh !important;
+        min-height: -webkit-fill-available !important;
+      }
+      .grading-overlay {
+        position: fixed !important;
+        inset: 0 !important;
+        pointer-events: none;
+        z-index: 1;
       }
       #hud {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100%;
-        max-width: none;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-        border-bottom: none;
+        position: fixed !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        top: auto !important;
+        width: 100% !important;
+        max-width: none !important;
+        border-radius: 0 !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-bottom: none !important;
         padding-top: 8px;
         padding-left: max(12px, env(safe-area-inset-left, 0px));
         padding-right: max(12px, env(safe-area-inset-right, 0px));
-        padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+        padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important;
+        z-index: 2;
       }
     </style>
     <link rel="preload" as="image" href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/17/79922/117308" />
@@ -130,9 +148,17 @@
           m.on("render", ready);
           m.on("idle", ready);
           setTimeout(ready, 6000);
-          var fit = function () { if (m.resize) m.resize(); };
-          window.addEventListener("resize", fit);
-          if (window.visualViewport) window.visualViewport.addEventListener("resize", fit);
+          var fill = function () {
+            var el = m.getContainer && m.getContainer();
+            var h = window.innerHeight, w = window.innerWidth;
+            if (el) { el.style.top = "0px"; el.style.left = "0px"; el.style.right = "0px"; el.style.bottom = "0px"; el.style.width = w + "px"; el.style.height = h + "px"; }
+            if (m.resize) m.resize();
+          };
+          fill();
+          window.addEventListener("resize", fill);
+          if (window.visualViewport) window.visualViewport.addEventListener("resize", fill);
+          setTimeout(fill, 0);
+          setTimeout(fill, 400);
           var ring = null;
           var sealed = [];
           var cv = document.createElement("canvas");
