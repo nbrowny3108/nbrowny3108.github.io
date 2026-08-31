@@ -96,6 +96,7 @@
           m.on("idle", ready);
           setTimeout(ready, 6000);
           var ring = null;
+          var sealed = [];
           var cv = document.createElement("canvas");
           cv.className = "grading-overlay";
           cv.setAttribute("aria-hidden", "true");
@@ -103,10 +104,35 @@
             var n = 1e5, d = a.r, e = [], i;
             for (i = 0; i < d.length; i += 2) e.push([d[i] / n, d[i + 1] / n]);
             ring = e;
-            drawShire();
+            drawOverlay();
           });
-          function drawShire() {
-            if (!ring) return;
+          var sealedUrls = [
+            "/assets/sealed-0.json","/assets/sealed-1.json","/assets/sealed-2.json",
+            "/assets/sealed-3.json","/assets/sealed-4.json","/assets/sealed-5.json",
+            "/assets/sealed-6.json","/assets/sealed-7.json","/assets/sealed-8.json"
+          ];
+          Promise.all(sealedUrls.map(function (u) {
+            return fetch(u).then(function (r) { return r.json(); });
+          })).then(function (parts) {
+            var out = [];
+            for (var p = 0; p < parts.length; p++) {
+              var a = parts[p], n = a.s, d = a.d, i, j, ints, x, y, line;
+              for (i = 0; i < d.length; i++) {
+                ints = d[i];
+                x = ints[0] / n; y = ints[1] / n;
+                line = [[x, y]];
+                for (j = 2; j < ints.length; j += 2) {
+                  x += ints[j] / n; y += ints[j + 1] / n;
+                  line.push([x, y]);
+                }
+                out.push(line);
+              }
+            }
+            sealed = out;
+            drawOverlay();
+          });
+          function drawOverlay() {
+            if (!ring && !sealed.length) return;
             var mc = m.getCanvas && m.getCanvas();
             if (!mc) return;
             if (!cv.parentNode && mc.parentNode) mc.parentNode.appendChild(cv);
@@ -120,25 +146,45 @@
             cv.style.height = h + "px";
             ctx.setTransform(pr, 0, 0, pr, 0, 0);
             ctx.clearRect(0, 0, w, h);
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 3;
-            ctx.lineJoin = "round";
-            ctx.beginPath();
-            var p = m.project(ring[0]);
-            ctx.moveTo(p.x, p.y);
-            for (var i = 1; i < ring.length; i++) {
-              p = m.project(ring[i]);
-              ctx.lineTo(p.x, p.y);
+            var i, p, s, line;
+            if (sealed.length) {
+              ctx.strokeStyle = "#e00000";
+              ctx.lineWidth = 2;
+              ctx.lineCap = "round";
+              ctx.lineJoin = "round";
+              for (s = 0; s < sealed.length; s++) {
+                line = sealed[s];
+                ctx.beginPath();
+                p = m.project(line[0]);
+                ctx.moveTo(p.x, p.y);
+                for (i = 1; i < line.length; i++) {
+                  p = m.project(line[i]);
+                  ctx.lineTo(p.x, p.y);
+                }
+                ctx.stroke();
+              }
             }
-            ctx.closePath();
-            ctx.stroke();
+            if (ring) {
+              ctx.strokeStyle = "#ffffff";
+              ctx.lineWidth = 5;
+              ctx.lineJoin = "round";
+              ctx.beginPath();
+              p = m.project(ring[0]);
+              ctx.moveTo(p.x, p.y);
+              for (i = 1; i < ring.length; i++) {
+                p = m.project(ring[i]);
+                ctx.lineTo(p.x, p.y);
+              }
+              ctx.closePath();
+              ctx.stroke();
+            }
           }
-          m.on("render", drawShire);
+          m.on("render", drawOverlay);
           return m;
         };
         maplibregl.Map.prototype = Orig.prototype;
       })();
     </script>
-    <script src="/assets/app.js?v=13"></script>
+    <script src="/assets/app.js?v=14"></script>
   </body>
 </html>
