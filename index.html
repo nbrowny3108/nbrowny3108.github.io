@@ -60,6 +60,15 @@
         pointer-events: none;
         z-index: 1;
       }
+      /* r18: GPS nose always visible, points the way you face (heading-up) */
+      .gps-chevron {
+        display: block !important;
+        top: 0 !important;
+        border-left: 12px solid transparent !important;
+        border-right: 12px solid transparent !important;
+        border-bottom: 22px solid #d8ff3a !important;
+        filter: drop-shadow(0 0 1px #111) drop-shadow(0 1px 2px rgba(0,0,0,.8));
+      }
       #hud {
         position: fixed !important;
         left: 0 !important;
