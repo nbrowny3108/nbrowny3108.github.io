@@ -61,6 +61,7 @@
         z-index: 1;
       }
       /* r18: GPS nose always visible, points the way you face (heading-up) */
+      .gps-marker { pointer-events: auto !important; cursor: pointer; z-index: 4; }
       .gps-chevron {
         display: block !important;
         top: 0 !important;
@@ -265,6 +266,46 @@
             }
           }
           m.on("render", drawOverlay);
+          var following = true, lastCam = null;
+          if (m.dragPan) {
+            m.dragPan.enable();
+            m.dragPan.disable = function () {};
+          }
+          m.on("dragstart", function () { following = false; });
+          var origJump = m.jumpTo.bind(m);
+          m.jumpTo = function (opts) {
+            if (following) {
+              if (opts && opts.center) lastCam = opts;
+              return origJump(opts);
+            }
+            if (!opts) return m;
+            return origJump({
+              center: m.getCenter(),
+              zoom: opts.zoom != null ? opts.zoom : m.getZoom(),
+              bearing: m.getBearing(),
+              pitch: 0
+            });
+          };
+          var origSetCenter = m.setCenter.bind(m);
+          m.setCenter = function () {
+            if (!following) return m;
+            return origSetCenter.apply(m, arguments);
+          };
+          function resumeFollow(ev) {
+            if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+            following = true;
+            if (lastCam) origJump(lastCam);
+          }
+          function bindGpsTap() {
+            var el = document.querySelector(".gps-marker");
+            if (!el || el.getAttribute("data-r19")) return;
+            el.setAttribute("data-r19", "1");
+            el.style.pointerEvents = "auto";
+            el.addEventListener("click", resumeFollow);
+            el.addEventListener("touchend", resumeFollow);
+          }
+          m.on("load", bindGpsTap);
+          setInterval(bindGpsTap, 500);
           return m;
         };
         maplibregl.Map.prototype = Orig.prototype;
