@@ -20,11 +20,46 @@
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.13.0/dist/maplibre-gl.css" />
     <title>Look-ahead — Horsham</title>
     <link rel="stylesheet" href="/assets/style-afjQ3w3-.css?v=10">
+    <link rel="apple-touch-icon" href="/favicon.svg" />
     <style>
       #map, #hud, #zoom-controls { visibility: hidden; }
       html.tiles-ready #map,
       html.tiles-ready #hud,
       html.tiles-ready #zoom-controls { visibility: visible; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        min-height: 100dvh;
+        min-height: -webkit-fill-available;
+        overflow: hidden;
+        background: #070a08;
+        position: fixed;
+        inset: 0;
+      }
+      #map {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #hud {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: none;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        padding-top: 8px;
+        padding-left: max(12px, env(safe-area-inset-left, 0px));
+        padding-right: max(12px, env(safe-area-inset-right, 0px));
+        padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+      }
     </style>
     <link rel="preload" as="image" href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/17/79922/117308" />
     <link rel="preload" as="image" href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/17/79923/117308" />
@@ -95,6 +130,9 @@
           m.on("render", ready);
           m.on("idle", ready);
           setTimeout(ready, 6000);
+          var fit = function () { if (m.resize) m.resize(); };
+          window.addEventListener("resize", fit);
+          if (window.visualViewport) window.visualViewport.addEventListener("resize", fit);
           var ring = null;
           var sealed = [];
           var cv = document.createElement("canvas");
