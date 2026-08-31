@@ -16,6 +16,7 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://unpkg.com" crossorigin />
     <link rel="preconnect" href="https://services.arcgisonline.com" crossorigin />
+    <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin />
     <link rel="preload" as="script" href="https://unpkg.com/maplibre-gl@5.13.0/dist/maplibre-gl.js" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.13.0/dist/maplibre-gl.css" />
     <title>Look-ahead — Horsham</title>
@@ -147,6 +148,8 @@
         var Orig = maplibregl.Map;
         maplibregl.Map = function (opts) {
           if (opts) opts.minZoom = 8;
+          var GLYPHS = "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf";
+          if (opts && opts.style && typeof opts.style === "object") opts.style.glyphs = GLYPHS;
           var m = new Orig(opts);
           var done = false;
           var ready = function () {
@@ -306,6 +309,75 @@
           }
           m.on("load", bindGpsTap);
           setInterval(bindGpsTap, 500);
+          function addStreetNames() {
+            try {
+              if (m.setGlyphs) m.setGlyphs(GLYPHS);
+              if (!m.getSource("openmaptiles")) {
+                m.addSource("openmaptiles", { type: "vector", url: "https://tiles.openfreemap.org/planet" });
+              }
+              if (m.getLayer("r20-highway-name-major")) return;
+              var nameField = [
+                "case",
+                ["has", "name:nonlatin"],
+                ["concat", ["get", "name:latin"], " ", ["get", "name:nonlatin"]],
+                ["coalesce", ["get", "name_en"], ["get", "name"]]
+              ];
+              var paint = {
+                "text-color": "#ffffff",
+                "text-halo-color": "rgba(0,0,0,0.9)",
+                "text-halo-width": 1.6,
+                "text-halo-blur": 0.4
+              };
+              m.addLayer({
+                id: "r20-highway-name-major",
+                type: "symbol",
+                source: "openmaptiles",
+                "source-layer": "transportation_name",
+                minzoom: 12.2,
+                filter: ["match", ["get", "class"], ["primary", "secondary", "tertiary", "trunk"], true, false],
+                layout: {
+                  "symbol-placement": "line",
+                  "text-field": nameField,
+                  "text-font": ["Noto Sans Regular"],
+                  "text-rotation-alignment": "map",
+                  "text-keep-upright": true,
+                  "text-size": ["interpolate", ["linear"], ["zoom"], 13, 12, 17, 14]
+                },
+                paint: paint
+              });
+              m.addLayer({
+                id: "r20-highway-name-minor",
+                type: "symbol",
+                source: "openmaptiles",
+                "source-layer": "transportation_name",
+                minzoom: 15,
+                filter: [
+                  "all",
+                  ["match", ["geometry-type"], ["LineString", "MultiLineString"], true, false],
+                  ["match", ["get", "class"], ["minor", "service", "track"], true, false]
+                ],
+                layout: {
+                  "symbol-placement": "line",
+                  "text-field": nameField,
+                  "text-font": ["Noto Sans Regular"],
+                  "text-rotation-alignment": "map",
+                  "text-keep-upright": true,
+                  "text-size": ["interpolate", ["linear"], ["zoom"], 13, 12, 17, 14]
+                },
+                paint: paint
+              });
+              var wrap = m.getContainer && m.getContainer();
+              if (wrap) wrap.setAttribute("data-r20", "1");
+            } catch (err) {}
+          }
+          m.on("load", addStreetNames);
+          var origSetStyle = m.setStyle.bind(m);
+          m.setStyle = function (style, o) {
+            if (style && typeof style === "object") style.glyphs = GLYPHS;
+            var r = origSetStyle(style, o);
+            m.once("idle", addStreetNames);
+            return r;
+          };
           return m;
         };
         maplibregl.Map.prototype = Orig.prototype;
