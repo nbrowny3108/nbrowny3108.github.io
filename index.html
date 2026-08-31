@@ -111,10 +111,7 @@
             "/assets/sealed-3.json","/assets/sealed-4.json","/assets/sealed-5.json",
             "/assets/sealed-6.json","/assets/sealed-7.json","/assets/sealed-8.json"
           ];
-          Promise.all(sealedUrls.map(function (u) {
-            return fetch(u).then(function (r) { return r.json(); });
-          })).then(function (parts) {
-            var out = [];
+          function addPacked(parts) {
             for (var p = 0; p < parts.length; p++) {
               var a = parts[p], n = a.s, d = a.d, i, j, ints, x, y, line;
               for (i = 0; i < d.length; i++) {
@@ -125,10 +122,25 @@
                   x += ints[j] / n; y += ints[j + 1] / n;
                   line.push([x, y]);
                 }
-                out.push(line);
+                sealed.push(line);
               }
             }
-            sealed = out;
+            drawOverlay();
+          }
+          Promise.all(sealedUrls.map(function (u) {
+            return fetch(u).then(function (r) { return r.json(); });
+          })).then(addPacked);
+          fetch("https://services2.arcgis.com/18ajPSI0b3ppsmMt/arcgis/rest/services/VicRoads_Declared_Roads/FeatureServer/0/query?f=geojson&where=1%3D1&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometry=%7B%22xmin%22%3A141.65%2C%22ymin%22%3A-36.43%2C%22xmax%22%3A142.58%2C%22ymax%22%3A-37.23%7D&geometryType=esriGeometryEnvelope&inSR=4326&outFields=ROADNAME&outSR=4326").then(function (r) { return r.json(); }).then(function (gj) {
+            var feats = gj.features || [], f, g, rings, ri, line;
+            for (f = 0; f < feats.length; f++) {
+              g = feats[f].geometry;
+              if (!g) continue;
+              rings = g.type === "LineString" ? [g.coordinates] : (g.type === "MultiLineString" ? g.coordinates : []);
+              for (ri = 0; ri < rings.length; ri++) {
+                line = rings[ri];
+                if (line && line.length >= 2) sealed.push(line);
+              }
+            }
             drawOverlay();
           });
           function drawOverlay() {
