@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="Date Icon" />
+  <title>Date Icon</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: #000;
+      color: #fff;
+      font-family: -apple-system, system-ui, sans-serif;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .wrap {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      gap: 18px;
+    }
+    .date {
+      font-size: 42px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .month {
+      font-size: 36px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="date" id="date">—</div>
+    <div class="month" id="month">—</div>
+  </div>
+  <script>
+    const months4 = ["Janu","Febr","Marc","Apri","May","June","July","Augu","Sept","Octo","Nove","Dece"]
+    function tick() {
+      const now = new Date()
+      const parts = new Intl.DateTimeFormat("en-AU", {
+        timeZone: "Australia/Melbourne",
+        day: "numeric",
+        month: "numeric",
+        year: "numeric"
+      }).formatToParts(now)
+      const day = parts.find(p => p.type === "day").value
+      const monthNum = parts.find(p => p.type === "month").value
+      const year = parts.find(p => p.type === "year").value
+      const monthIndex = Number(monthNum) - 1
+      document.getElementById("date").textContent = day + "/" + monthNum + "/" + year
+      document.getElementById("month").textContent = months4[monthIndex]
+    }
+    tick()
+    setInterval(tick, 30000)
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) tick()
+    })
+  </script>
+</body>
+</html>
