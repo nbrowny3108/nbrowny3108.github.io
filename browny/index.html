@@ -3,68 +3,300 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <meta name="apple-mobile-web-app-title" content="Date Icon" />
-  <title>Date Icon</title>
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Browny" />
+  <meta name="description" content="Browny date widget — day, month number, year and full month name. Australia/Melbourne." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <title>Browny</title>
   <style>
+    :root {
+      --bg: #050505;
+      --card: rgba(22, 22, 24, 0.82);
+      --stroke: rgba(255,255,255,0.12);
+      --text: #f5f5f7;
+      --muted: #8e8e93;
+      --red: #ff453a;
+      --accent: #0a84ff;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       height: 100%;
-      background: #000;
-      color: #fff;
-      font-family: -apple-system, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
       -webkit-user-select: none;
       user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
-    .wrap {
-      min-height: 100%;
+    body {
+      min-height: 100dvh;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    .page {
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 20px 18px 28px;
       gap: 18px;
     }
-    .date {
-      font-size: 42px;
+    .brand {
+      letter-spacing: 0.28em;
+      font-size: 12px;
       font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .widget {
+      width: min(92vw, 380px);
+      aspect-ratio: 1 / 1.05;
+      border-radius: 36px;
+      background:
+        radial-gradient(120% 80% at 50% -10%, rgba(255,69,58,0.22), transparent 55%),
+        linear-gradient(180deg, #1c1c1e 0%, #0b0b0c 100%);
+      border: 1px solid var(--stroke);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(180deg, #ff3b30 0%, #d70015 100%);
+      padding: 16px 20px 12px;
+      text-align: center;
+    }
+    .weekday {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.92);
+    }
+    .month-full {
+      margin-top: 4px;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 20px 18px;
+    }
+    .day-num {
+      font-size: 148px;
+      font-weight: 720;
+      line-height: 0.86;
+      letter-spacing: -0.04em;
+      font-variant-numeric: tabular-nums;
+    }
+    .time {
+      margin-top: 10px;
+      font-size: 34px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
       letter-spacing: 0.02em;
     }
-    .month {
-      font-size: 36px;
-      font-weight: 500;
-      letter-spacing: 0.04em;
+    .meta {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+    }
+    .chip {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 10px 6px;
+      text-align: center;
+    }
+    .chip b {
+      display: block;
+      font-size: 20px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .chip span {
+      display: block;
+      margin-top: 2px;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .numeric {
+      font-size: 17px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .hint {
+      max-width: 380px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .hint kbd {
+      color: var(--text);
+      background: #1c1c1e;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 1px 6px;
+      font-size: 12px;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    button {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: #1c1c1e;
+      color: #fff;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    button.active { background: #0a84ff; border-color: #0a84ff; }
+    .installed .hint-install { display: none; }
+    @media (max-height: 700px) {
+      .day-num { font-size: 112px; }
+      .widget { aspect-ratio: 1 / 0.96; }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="date" id="date">—</div>
-    <div class="month" id="month">—</div>
+  <div class="page">
+    <div class="brand">Browny</div>
+    <section class="widget" aria-label="Date widget">
+      <div class="header">
+        <div class="weekday" id="weekday">—</div>
+        <div class="month-full" id="monthFull">—</div>
+      </div>
+      <div class="body">
+        <div class="day-num" id="day">—</div>
+        <div class="time" id="time">—</div>
+        <div class="numeric" id="numeric">—</div>
+        <div class="meta">
+          <div class="chip"><b id="monthNum">—</b><span>Month</span></div>
+          <div class="chip"><b id="year">—</b><span>Year</span></div>
+          <div class="chip"><b id="week">—</b><span>Week</span></div>
+        </div>
+      </div>
+    </section>
+    <div class="row">
+      <button id="btn24" class="active" type="button">24-hour</button>
+      <button id="btn12" type="button">12-hour</button>
+      <button id="btnShort" type="button">4-letter month</button>
+    </div>
+    <p class="hint hint-install">
+      Safari → <kbd>Share</kbd> → <kbd>Add to Home Screen</kbd>.
+      Opens full-screen like an app. Home-screen icon is a calendar tile.
+    </p>
+    <p class="hint">Australia / Melbourne time. Updates every second.</p>
   </div>
   <script>
-    const months4 = ["Janu","Febr","Marc","Apri","May","June","July","Augu","Sept","Octo","Nove","Dece"]
+    const TZ = "Australia/Melbourne";
+    const LOCALE = "en-AU";
+    const months4 = ["Janu","Febr","Marc","Apri","May","June","July","Augu","Sept","Octo","Nove","Dece"];
+    let use24 = true;
+    let shortMonth = false;
+
+    function part(parts, type) {
+      return parts.find(p => p.type === type)?.value || "";
+    }
+
+    function weekNumber(date) {
+      const tmp = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = tmp.getUTCDay() || 7;
+      tmp.setUTCDate(tmp.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+      return Math.ceil((((tmp - yearStart) / 86400000) + 1) / 7);
+    }
+
     function tick() {
-      const now = new Date()
-      const parts = new Intl.DateTimeFormat("en-AU", {
-        timeZone: "Australia/Melbourne",
+      const now = new Date();
+      const parts = new Intl.DateTimeFormat(LOCALE, {
+        timeZone: TZ,
+        weekday: "long",
         day: "numeric",
         month: "numeric",
-        year: "numeric"
-      }).formatToParts(now)
-      const day = parts.find(p => p.type === "day").value
-      const monthNum = parts.find(p => p.type === "month").value
-      const year = parts.find(p => p.type === "year").value
-      const monthIndex = Number(monthNum) - 1
-      document.getElementById("date").textContent = day + "/" + monthNum + "/" + year
-      document.getElementById("month").textContent = months4[monthIndex]
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: !use24
+      }).formatToParts(now);
+      const monthFullParts = new Intl.DateTimeFormat(LOCALE, {
+        timeZone: TZ, month: "long"
+      }).formatToParts(now);
+
+      const day = part(parts, "day");
+      const monthNum = part(parts, "month");
+      const year = part(parts, "year");
+      const weekday = part(parts, "weekday");
+      const monthIndex = Number(monthNum) - 1;
+      const monthName = shortMonth ? months4[monthIndex] : part(monthFullParts, "month");
+
+      let hour = part(parts, "hour");
+      const minute = part(parts, "minute");
+      const second = part(parts, "second");
+      const dayPeriod = part(parts, "dayPeriod");
+      const time = use24
+        ? hour.padStart(2, "0") + ":" + minute + ":" + second
+        : hour + ":" + minute + ":" + second + (dayPeriod ? " " + dayPeriod : "");
+
+      document.getElementById("weekday").textContent = weekday;
+      document.getElementById("monthFull").textContent = monthName;
+      document.getElementById("day").textContent = day;
+      document.getElementById("time").textContent = time;
+      document.getElementById("numeric").textContent = day + "/" + monthNum + "/" + year;
+      document.getElementById("monthNum").textContent = monthNum;
+      document.getElementById("year").textContent = year;
+      document.getElementById("week").textContent = String(weekNumber(now));
     }
-    tick()
-    setInterval(tick, 30000)
-    document.addEventListener("visibilitychange", function () {
-      if (!document.hidden) tick()
-    })
+
+    document.getElementById("btn24").onclick = () => {
+      use24 = true;
+      document.getElementById("btn24").classList.add("active");
+      document.getElementById("btn12").classList.remove("active");
+      tick();
+    };
+    document.getElementById("btn12").onclick = () => {
+      use24 = false;
+      document.getElementById("btn12").classList.add("active");
+      document.getElementById("btn24").classList.remove("active");
+      tick();
+    };
+    document.getElementById("btnShort").onclick = (e) => {
+      shortMonth = !shortMonth;
+      e.currentTarget.classList.toggle("active", shortMonth);
+      tick();
+    };
+
+    tick();
+    setInterval(tick, 1000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+
+    if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) {
+      document.body.classList.add("installed");
+    }
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
   </script>
 </body>
 </html>

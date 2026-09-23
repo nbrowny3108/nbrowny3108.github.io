@@ -1,0 +1,14 @@
+{
+  "name": "Browny Date",
+  "short_name": "Browny",
+  "description": "Date and time widget for Horsham — day, month, year and full month name.",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050505",
+  "theme_color": "#000000",
+  "start_url": "./index.html",
+  "scope": "./",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
